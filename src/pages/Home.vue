@@ -44,16 +44,7 @@
          }).catch((err)=>{
              console.log('数据获取失败'+err);
          });
-       },
-      toseller(){
-        this.$router.push({
-          name: 'seller',
-          params:{
-            name: "namevalue",
-            code: 1001
-          }
-        })
-      }
+       }
     }
   }
 </script>

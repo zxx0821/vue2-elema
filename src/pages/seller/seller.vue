@@ -1,7 +1,7 @@
 <template>
   <div class="seller">
     <div>seller</div>
-    <div>{{getuserId}}</div>
+    <div></div>
   </div>
 </template>
 <script>
@@ -14,9 +14,6 @@
         }
     },
     computed: {
-        getuserId(){
-            return this.$route.params.age;
-        }
     }
   }
 </script>

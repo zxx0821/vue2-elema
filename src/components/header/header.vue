@@ -2,9 +2,11 @@
   <div class="header" id="header">
     <!--内容区-->
     <div class="header-content">
+      <!-- 头像 -->
       <div class="avatar">
         <img width="64" height="64" :src="seller.avatar" alt="图标">
       </div>
+      <!-- 内容-->
       <div class="header-wrapper">
         <div class="title">
           <span class="brand"></span>

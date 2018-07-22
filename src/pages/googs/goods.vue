@@ -3,7 +3,7 @@
     <!--侧边栏-->
     <div class="menu-wrapper" ref="menuWrapper">
       <ul>
-        <li v-for="(item,index) in goods" class="menu-item"  :class="{'current':currentIndex===index}">
+        <li v-for="(item,index) in goods" class="menu-item"  :class="{'current':currentIndex===index}" @click="selectMenu(index,$event)">
           <span class="text border-1px">
             <span v-show="item.type>0" class="icon" :class="classMap[item.type]"></span>{{item.name}}
           </span>
@@ -43,6 +43,7 @@
   </div>
 </template>
 <script>
+  import BScroll from 'better-scroll'
     export default {
       name:'goods',
       props:{
@@ -55,7 +56,9 @@
       },
       data(){
           return{
-              goods:[]
+            goods:[],
+            listHeight: [], /* 存储右侧高度 */
+            scrollY: 0,   /* 左侧 */
           }
       },
       created(){
@@ -63,22 +66,65 @@
         this.getGoods();
       },
       computed:{
-        currentIndex(){
-           return 0;
-        }
+        /* 左侧索引与右侧映射 */
+        currentIndex() {
+          for (let i = 0; i < this.listHeight.length; i++) { // 遍历右侧高度
+            let height1 = this.listHeight[i];  // 当前高度
+            let height2 = this.listHeight[i + 1];  // 下一个高度
+            if (!height2 || (this.scrollY >= height1 && this.scrollY < height2)) {  // y在1-2区间
+              return i;
+            }
+          }
+          return 0;
+        },
       },
       methods:{
          getGoods(){
            let _this = this;
            _this.$axios.get('/api/goods').then((res)=>{
                if(res.data.errno === 0){
-                 _this.goods = res.data.data;
-                 console.log(_this.goods)
+                   _this.goods = res.data.data;
+                   this.$nextTick(()=>{
+                       this._initScroll();
+                       this._calculateHeight();   /* 计算右侧高度 */
+                   })
                }
            }).catch((err)=>{
                console.log(err);
            })
-         }
+         },
+        selectMenu(index,event){
+            if(!event._constructed){
+                return;
+            }
+            let fooList = this.$refs.foodsList;
+            let el = fooList[index];
+            this.foodsScroll.scrollToElement(el,300)  // scrollToElement时间300
+        },
+        _initScroll(){
+            let _this = this;
+            /*两个参数1.dom,2.json*/
+          _this.menuScroll = new BScroll(this.$refs.menuWrapper,{
+                click: true    /*点击监听*/
+            });
+          _this.foodsScroll = new BScroll(this.$refs.foodsWrapper,{
+              click: true,    /*点击监听*/
+              probeType: 3   // 实时监听位置scroll
+            });
+          _this.foodsScroll.on("scroll", (pos)=>{
+            _this.scrollY = Math.abs(Math.round(pos.y));// 正整数
+          })
+        },
+        _calculateHeight(){
+          let foodList = this.$refs.foodsList; /* 获取区间dom */
+          let height = 0;  // 初始高度0
+          this.listHeight.push(height);  // height 的第一个值
+          for (let i = 0; i < foodList.length; i++) {/* /!* foodList 是一个数组 *!/*/
+            let item = foodList[i];   // foodList每一个li
+            height += item.clientHeight;  // 累加
+            this.listHeight.push(height);   // 存入数组
+          }
+        }
       }
     }
 </script>
@@ -96,7 +142,7 @@
       width:80px;
       background: #f3f5f7;
       .menu-item{
-        display: table;
+        display: table;   /*垂直居中*/
         height: 54px;
         width: 56px;
         padding: 0 12px;
